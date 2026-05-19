@@ -50,18 +50,30 @@
 
     .search-wrapper {
       flex: 1;
-      max-width: 400px;
+      max-width: 500px;
       position: relative;
+      display: flex;
+      gap: 10px;
     }
 
-    input[type="text"] {
-      width: 100%;
+    input[type="text"], select {
       padding: 10px 14px;
       border: 1px solid var(--border-color);
       border-radius: 6px;
       font-size: 14px;
       box-sizing: border-box;
       transition: border-color 0.2s;
+    }
+
+    input[type="text"] {
+      flex: 2;
+      width: 100%;
+    }
+
+    select {
+      flex: 1;
+      background-color: white;
+      cursor: pointer;
     }
 
     input[type="text"]:focus {
@@ -195,7 +207,10 @@
     <div class="header-controls">
       <h2>Equipment List</h2>
       <div class="search-wrapper">
-        <input type="text" id="searchInput" placeholder="Search equipment or room..." oninput="handleSearch()">
+        <input type="text" id="searchInput" placeholder="Search equipment..." oninput="handleSearch()">
+        <select id="roomFilter" onchange="handleSearch()">
+          <option value="">All Rooms</option>
+        </select>
       </div>
     </div>
 
@@ -281,6 +296,16 @@
         return;
       }
       globalData = response.data || [];
+      
+      // Sort alphabetically by English name
+      globalData.sort((a, b) => {
+        const nameA = (a["Equipment list"] || "").toLowerCase();
+        const nameB = (b["Equipment list"] || "").toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+      
+      populateRoomDropdown();
+      
       filteredData = [...globalData];
       currentPage = 1;
 
@@ -322,13 +347,39 @@
       return { thumb: url, full: url };
     }
 
+    function populateRoomDropdown() {
+      const roomFilter = document.getElementById('roomFilter');
+      // Keep only the "All Rooms" option before repopulating
+      roomFilter.innerHTML = '<option value="">All Rooms</option>';
+      
+      const rooms = new Set();
+      globalData.forEach(item => {
+        const room = (item["Room"] || "").trim();
+        if (room) rooms.add(room);
+      });
+      
+      const sortedRooms = Array.from(rooms).sort();
+      sortedRooms.forEach(room => {
+        const option = document.createElement('option');
+        option.value = room;
+        option.textContent = room;
+        roomFilter.appendChild(option);
+      });
+    }
+
     function handleSearch() {
       const query = document.getElementById('searchInput').value.toLowerCase();
+      const selectedRoom = document.getElementById('roomFilter').value.toLowerCase();
+      
       filteredData = globalData.filter(item => {
         const en = (item["Equipment list"] || "").toLowerCase();
         const th = (item["รายการครุภัณฑ์"] || "").toLowerCase();
         const room = (item["Room"] || "").toLowerCase();
-        return en.includes(query) || th.includes(query) || room.includes(query);
+        
+        const matchesQuery = en.includes(query) || th.includes(query) || room.includes(query);
+        const matchesRoom = selectedRoom === "" || room === selectedRoom;
+        
+        return matchesQuery && matchesRoom;
       });
       currentPage = 1;
       renderPage();
