@@ -140,44 +140,7 @@
       border: 1px dashed #cbd5e1;
     }
 
-    .pagination {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 20px;
-      padding-top: 15px;
-      border-top: 1px solid var(--border-color);
-    }
-
-    .page-info {
-      font-size: 14px;
-      color: var(--text-muted);
-    }
-
-    .page-buttons button {
-      background-color: #fff;
-      border: 1px solid var(--border-color);
-      padding: 8px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      color: var(--text-main);
-      transition: all 0.2s;
-    }
-
-    .page-buttons button:hover:not(:disabled) {
-      background-color: #f1f5f9;
-      border-color: #cbd5e1;
-    }
-
-    .page-buttons button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .page-buttons button+button {
-      margin-left: 8px;
-    }
+    /* Pagination removed */
 
     #message {
       padding: 15px;
@@ -235,13 +198,7 @@
       </table>
     </div>
 
-    <div class="pagination" id="paginationControls" style="display:none;">
-      <div class="page-info" id="pageInfo">Showing 0 of 0</div>
-      <div class="page-buttons">
-        <button id="prevBtn" onclick="changePage(-1)">Previous</button>
-        <button id="nextBtn" onclick="changePage(1)">Next</button>
-      </div>
-    </div>
+    <!-- Pagination removed -->
   </div>
 
   <script>
@@ -249,12 +206,10 @@
     // If hosting on GitHub Pages, set this to your Google Apps Script Web App URL
     // e.g., 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec'
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxtQcRMwid2Zcg6f_OmQuSvCvZ2JtOD4TdlfSBYNG-I92y3yYRtGLMxZdKNvN8T-WwBQw/exec';
-    const ITEMS_PER_PAGE = 25;
     // ---------------------
 
     let globalData = [];
     let filteredData = [];
-    let currentPage = 1;
 
     // Initialize fetch
     function init() {
@@ -318,10 +273,8 @@
       populateRoomDropdown();
       
       filteredData = [...globalData];
-      currentPage = 1;
 
       document.getElementById('tableContainer').style.display = 'block';
-      document.getElementById('paginationControls').style.display = 'flex';
 
       renderPage();
     }
@@ -392,15 +345,6 @@
         
         return matchesQuery && matchesRoom;
       });
-      currentPage = 1;
-      renderPage();
-    }
-
-    function changePage(delta) {
-      const maxPage = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
-      currentPage += delta;
-      if (currentPage < 1) currentPage = 1;
-      if (currentPage > maxPage) currentPage = maxPage;
       renderPage();
     }
 
@@ -410,15 +354,10 @@
 
       if (filteredData.length === 0) {
         tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 30px; color: #64748b;">No matching equipment found</td></tr>';
-        updatePaginationInfo();
         return;
       }
 
-      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-      const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredData.length);
-      const pageData = filteredData.slice(startIndex, endIndex);
-
-      pageData.forEach(item => {
+      filteredData.forEach(item => {
         const nameEn = item["Equipment list"] || "";
         const nameTh = item["รายการครุภัณฑ์"] || "";
         const rawImageUrl = item["รูปครุภัณฑ์"] || "";
@@ -427,7 +366,7 @@
         const urls = formatImageUrls(rawImageUrl);
         let imageHtml = '<div class="no-image">No Img</div>';
         if (urls.thumb) {
-          imageHtml = `<a href="${urls.full}" target="_blank"><img src="${urls.thumb}" alt="${nameEn}" onerror="this.style.display='none'"></a>`;
+          imageHtml = `<a href="${urls.full}" target="_blank"><img src="${urls.thumb}" alt="${nameEn}" loading="lazy" onerror="this.style.display='none'"></a>`;
         }
 
         const tr = document.createElement('tr');
@@ -441,25 +380,6 @@
         `;
         tbody.appendChild(tr);
       });
-
-      updatePaginationInfo(startIndex, endIndex);
-    }
-
-    function updatePaginationInfo(start, end) {
-      const maxPage = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
-      const prevBtn = document.getElementById('prevBtn');
-      const nextBtn = document.getElementById('nextBtn');
-      const info = document.getElementById('pageInfo');
-
-      if (filteredData.length === 0) {
-        info.innerHTML = `Showing 0 results`;
-        prevBtn.disabled = true;
-        nextBtn.disabled = true;
-      } else {
-        info.innerHTML = `Showing ${start + 1}-${end} of ${filteredData.length}`;
-        prevBtn.disabled = currentPage === 1;
-        nextBtn.disabled = currentPage === maxPage;
-      }
     }
 
     // Start
