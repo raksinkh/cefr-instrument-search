@@ -71,10 +71,13 @@
     }
 
     select {
-      flex: 1;
-      min-width: 120px;
+      width: 250px;
+      flex: none;
       background-color: white;
       cursor: pointer;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
     }
 
     input[type="text"]:focus {
@@ -298,10 +301,11 @@
       }
       globalData = response.data || [];
       
-      // Filter out empty rows based on "Equipment list"
+      // Filter out empty rows (checking both English and Thai names for any invisible characters)
       globalData = globalData.filter(item => {
-        const name = item["Equipment list"] || "";
-        return name.trim() !== "";
+        const nameEn = (item["Equipment list"] || "").replace(/[\s\u200B-\u200D\uFEFF]/g, '');
+        const nameTh = (item["รายการครุภัณฑ์"] || "").replace(/[\s\u200B-\u200D\uFEFF]/g, '');
+        return nameEn.length > 0 || nameTh.length > 0;
       });
       
       // Sort alphabetically by English name
