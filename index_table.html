@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equipment List - Compact Table</title>
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+    }
+
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 16px; 
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      box-sizing: border-box;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+    }
+
+    .header-controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 15px;
+    }
+
+    h2 { 
+      margin: 0; 
+      font-size: 1.5rem;
+      color: var(--text-main);
+    }
+
+    .search-wrapper {
+      flex: 1;
+      max-width: 400px;
+      position: relative;
+    }
+
+    input[type="text"] { 
+      width: 100%; 
+      padding: 10px 14px; 
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table { 
+      border-collapse: collapse; 
+      width: 100%; 
+      font-size: 14px;
+    }
+
+    th, td { 
+      border-bottom: 1px solid var(--border-color); 
+      padding: 10px 12px; 
+      text-align: left; 
+      vertical-align: middle;
+    }
+
+    th { 
+      background-color: #f1f5f9; 
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+    }
+
+    tr:hover {
+      background-color: #f8fafc;
+    }
+
+    .image-cell img { 
+      width: 60px; 
+      height: 60px; 
+      border-radius: 6px;
+      object-fit: cover;
+      display: block;
+      background-color: #f1f5f9;
+      border: 1px solid var(--border-color);
+    }
+    
+    .no-image {
+      width: 60px;
+      height: 60px;
+      border-radius: 6px;
+      background-color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      font-size: 12px;
+      border: 1px dashed #cbd5e1;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .page-info {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .page-buttons button {
+      background-color: #fff;
+      border: 1px solid var(--border-color);
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-main);
+      transition: all 0.2s;
+    }
+    
+    .page-buttons button:hover:not(:disabled) {
+      background-color: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+
+    .page-buttons button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .page-buttons button + button {
+      margin-left: 8px;
+    }
+
+    #message {
+      padding: 15px;
+      border-radius: 6px;
+      background-color: #e0f2fe;
+      color: #0369a1;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    
+    #message.error {
+      background-color: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .name-en { font-weight: 500; }
+    .name-th { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header-controls">
+      <h2>Equipment List</h2>
+      <div class="search-wrapper">
+        <input type="text" id="searchInput" placeholder="Search equipment or room..." oninput="handleSearch()">
+      </div>
+    </div>
+    
+    <div id="message">Loading equipment data...</div>
+    
+    <div class="table-container" id="tableContainer" style="display:none;">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th width="80">Image</th>
+            <th>Equipment Name</th>
+            <th width="150">Room</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Data will go here -->
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination" id="paginationControls" style="display:none;">
+      <div class="page-info" id="pageInfo">Showing 0 of 0</div>
+      <div class="page-buttons">
+        <button id="prevBtn" onclick="changePage(-1)">Previous</button>
+        <button id="nextBtn" onclick="changePage(1)">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- CONFIGURATION ---
+    // If hosting on GitHub Pages, set this to your Google Apps Script Web App URL
+    // e.g., 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec'
+    const WEB_APP_URL = ''; 
+    const ITEMS_PER_PAGE = 25;
+    // ---------------------
+
+    let globalData = [];
+    let filteredData = [];
+    let currentPage = 1;
+
+    // Initialize fetch
+    function init() {
+      if (WEB_APP_URL) {
+        // Fetch from Web App URL (for GitHub pages)
+        fetch(WEB_APP_URL)
+          .then(response => response.json())
+          .then(data => onSuccess(data))
+          .catch(error => onError(error));
+      } else if (typeof google !== 'undefined' && google.script) {
+        // Fallback for native Apps Script environment
+        google.script.run
+          .withSuccessHandler(onSuccess)
+          .withFailureHandler(onError)
+          .getSheetData();
+      } else {
+        // Mock data for testing
+        setTimeout(() => {
+          const mock = Array.from({length: 45}).map((_, i) => ({
+            "Equipment list": `Microscope ${i+1}`, 
+            "รายการครุภัณฑ์": `กล้องจุลทรรศน์ ${i+1}`, 
+            "รูปครุภัณฑ์": "", 
+            "Room": i % 2 === 0 ? "Lab A" : "Lab B"
+          }));
+          onSuccess({ data: mock });
+        }, 500);
+      }
+    }
+
+    function onSuccess(responseStr) {
+      document.getElementById('message').style.display = 'none';
+      let response;
+      try {
+        response = typeof responseStr === 'string' ? JSON.parse(responseStr) : responseStr;
+      } catch(e) {
+        showError('Error parsing data: ' + e.message);
+        return;
+      }
+      
+      if (response.error) {
+         showError('Error: ' + response.error);
+         return;
+      }
+      globalData = response.data || [];
+      filteredData = [...globalData];
+      currentPage = 1;
+      
+      document.getElementById('tableContainer').style.display = 'block';
+      document.getElementById('paginationControls').style.display = 'flex';
+      
+      renderPage();
+    }
+
+    function onError(error) {
+      showError('Failed to load data: ' + error.message);
+    }
+
+    function showError(msg) {
+      const msgEl = document.getElementById('message');
+      msgEl.style.display = 'block';
+      msgEl.className = 'error';
+      msgEl.innerHTML = msg;
+    }
+
+    function formatImageUrls(url) {
+      if (!url) return { thumb: '', full: '' };
+      url = String(url).trim();
+      let id = null;
+      
+      const driveMatch = url.match(/drive\.google\.com\/file\/d\/([^\/]+)/);
+      if (driveMatch && driveMatch[1]) id = driveMatch[1];
+      
+      const openMatch = url.match(/drive\.google\.com\/open\?id=([^&]+)/);
+      if (openMatch && openMatch[1]) id = openMatch[1];
+      
+      if (id) {
+         return {
+           thumb: 'https://drive.google.com/thumbnail?id=' + id + '&sz=w200-h200',
+           full: 'https://drive.google.com/file/d/' + id + '/view'
+         };
+      }
+      
+      return { thumb: url, full: url }; 
+    }
+
+    function handleSearch() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      filteredData = globalData.filter(item => {
+        const en = (item["Equipment list"] || "").toLowerCase();
+        const th = (item["รายการครุภัณฑ์"] || "").toLowerCase();
+        const room = (item["Room"] || "").toLowerCase();
+        return en.includes(query) || th.includes(query) || room.includes(query);
+      });
+      currentPage = 1;
+      renderPage();
+    }
+
+    function changePage(delta) {
+      const maxPage = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+      currentPage += delta;
+      if (currentPage < 1) currentPage = 1;
+      if (currentPage > maxPage) currentPage = maxPage;
+      renderPage();
+    }
+
+    function renderPage() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+      
+      if (filteredData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 30px; color: #64748b;">No matching equipment found</td></tr>';
+        updatePaginationInfo();
+        return;
+      }
+
+      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+      const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredData.length);
+      const pageData = filteredData.slice(startIndex, endIndex);
+
+      pageData.forEach(item => {
+        const nameEn = item["Equipment list"] || "";
+        const nameTh = item["รายการครุภัณฑ์"] || "";
+        const rawImageUrl = item["รูปครุภัณฑ์"] || "";
+        const room = item["Room"] || "-";
+        
+        const urls = formatImageUrls(rawImageUrl);
+        let imageHtml = '<div class="no-image">No Img</div>';
+        if (urls.thumb) {
+          imageHtml = `<a href="${urls.full}" target="_blank"><img src="${urls.thumb}" alt="${nameEn}" onerror="this.style.display='none'"></a>`;
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="image-cell">${imageHtml}</td>
+          <td>
+            <div class="name-en">${nameEn}</div>
+            <div class="name-th">${nameTh}</div>
+          </td>
+          <td>${room}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      updatePaginationInfo(startIndex, endIndex);
+    }
+
+    function updatePaginationInfo(start, end) {
+      const maxPage = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const info = document.getElementById('pageInfo');
+
+      if (filteredData.length === 0) {
+        info.innerHTML = `Showing 0 results`;
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+      } else {
+        info.innerHTML = `Showing ${start + 1}-${end} of ${filteredData.length}`;
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage === maxPage;
+      }
+    }
+
+    // Start
+    init();
+  </script>
+</body>
+</html>
