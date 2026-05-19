@@ -50,7 +50,7 @@
 
     .search-wrapper {
       flex: 1;
-      max-width: 600px;
+      max-width: 500px;
       position: relative;
       display: flex;
       gap: 10px;
@@ -66,13 +66,13 @@
     }
 
     input[type="text"] {
-      flex: 1;
+      flex: 3;
       width: 100%;
     }
 
     select {
-      width: 160px;
-      flex-shrink: 0;
+      flex: 1;
+      min-width: 120px;
       background-color: white;
       cursor: pointer;
     }
@@ -296,11 +296,12 @@
         showError('Error: ' + response.error);
         return;
       }
-      let rawData = response.data || [];
+      globalData = response.data || [];
       
-      // Filter out empty rows where "Equipment list" is blank
-      globalData = rawData.filter(item => {
-        return (item["Equipment list"] || "").trim().length > 0;
+      // Filter out empty rows based on "Equipment list"
+      globalData = globalData.filter(item => {
+        const name = item["Equipment list"] || "";
+        return name.trim() !== "";
       });
       
       // Sort alphabetically by English name
