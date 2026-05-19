@@ -231,7 +231,8 @@
     function init() {
       if (WEB_APP_URL) {
         // Fetch from Web App URL (for GitHub pages)
-        fetch(WEB_APP_URL)
+        const url = WEB_APP_URL.includes('?') ? WEB_APP_URL + '&api=true' : WEB_APP_URL + '?api=true';
+        fetch(url)
           .then(response => response.json())
           .then(data => onSuccess(data))
           .catch(error => onError(error));

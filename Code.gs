@@ -1,5 +1,13 @@
-function doGet() {
-  return HtmlService.createTemplateFromFile('Index')
+function doGet(e) {
+  // If ?api=true is passed, return JSON data for GitHub Pages to fetch
+  if (e && e.parameter && e.parameter.api === 'true') {
+    const data = getSheetData();
+    return ContentService.createTextOutput(data)
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // Otherwise, return the HTML interface for Apps Script
+  return HtmlService.createTemplateFromFile('index')
       .evaluate()
       .setTitle('Equipment Directory')
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
